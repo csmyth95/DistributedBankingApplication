@@ -16,7 +16,6 @@ provide a class that implements the Statement interface.
 */
 
 import java.rmi.Naming;
-import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.DateFormat;
@@ -29,88 +28,128 @@ import static java.lang.System.exit;
 
 //SERVER
 public class Bank extends UnicastRemoteObject implements BankInterface {
-
+    private Boolean loggedIn;
+    private Account currentUser;
+    private long timeOfLogin;
     private List<Account> accounts; // users accounts
+    private static long loginPeriod = 300000; // 5 minutes in milliseconds
 
     public Bank() throws RemoteException
     {
         super();
     }
 
-    public long login(String username, String password) throws RemoteException, InvalidLogin {
-        // TODO
-        return 0;
-    }
-
-    @Override
-    public void deposit(int accNum, int amount, long sessionID) throws RemoteException, InvalidSession {
-        // implementation code
+    public void login(String username, String password) throws RemoteException, InvalidLogin {
         for (Account a: this.accounts) {
-            if (a.getAccountNum() == accNum) {
-                a.updateBalance(amount);
-                a.addTransaction(new Transaction("Deposit", a.getBalance()));
-                System.out.println(amount + " deposited into account number " + accNum);
-                exit(1);
+            if (a.getUsername() == username && a.getPassword() == password){
+                this.loggedIn = true;
+                this.currentUser = a;
+                this.timeOfLogin = System.currentTimeMillis();
             }
         }
-        System.out.println("Account number "+accNum+" does not exist.");
-        exit(1);
-
+        System.out.println("Account with username "+username+" does not exist or the password is incorrect.");
+        throw new InvalidLogin("Username or password is incorrect.");
     }
 
     @Override
-    public void withdraw(int accNum, int amount, long sessionID) throws RemoteException, InvalidSession {
-        // implementation code
-        for (Account a: accounts){
-            if(a.getAccountNum() == accNum) {
-                a.updateBalance(amount);
-                a.addTransaction(new Transaction("Withdrawal", a.getBalance()));
-                System.out.println(amount +" withdrew from account "+accNum);
-                exit(1);
-            }
-        }
-
-        System.out.println("Account number "+accNum+" does not exist.");
-        exit(1);
-    }
-
-    @Override
-    public int inquiry(int accNum, long sessionID) throws RemoteException, InvalidSession {
-        for (Account a: accounts){
-            if(a.getAccountNum() == accNum) {
-                System.out.println("The current balance of account "+accNum+" is €"+a.getBalance());
-                return a.getBalance();
-            }
-        }
-        System.out.println("Account number" + accNum + " does not exist.");
-        return 0;
-    }
-
-    @Override
-    public Statement getStatement(int accNum, String from, String to, long sessionID) throws RemoteException, InvalidSession {
-        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        try {
-            Date fromDate = df.parse(from);
-            Date toDate = df.parse(to);
-            for (Account acc: this.accounts) {
-                if (acc.getAccountNum() == accNum) {
-                    Statement newStatement = new Statement(fromDate, toDate, acc);
-                    System.out.println(newStatement.toString());
-                    return newStatement;
+    public void deposit(int accNum, int amount) throws RemoteException, InvalidSession {
+        if (this.loggedIn && ((System.currentTimeMillis() - this.timeOfLogin) < loginPeriod)) {
+            for (Account a : this.accounts) {
+                if (a.getAccountNum() == accNum) {
+                    a.updateBalance(amount);
+                    a.addTransaction(new Transaction("Deposit", a.getBalance()));
+                    System.out.println(amount + " deposited into account number " + accNum);
+                    exit(1);
                 }
             }
-        } catch (ParseException e){
-            e.printStackTrace();
+            System.out.println("Account number " + accNum + " does not exist.");
+            throw new InvalidSession("Account number does not exist");
         }
-        System.out.println("No transactions found for the period "+from+" - "+ to);
-        return null;
+        else {
+            throw new InvalidSession("Session has expired, please login again.");
+        }
+
     }
 
+    @Override
+    public void withdraw(int accNum, int amount) throws RemoteException, InvalidSession {
+        if (this.loggedIn && ((System.currentTimeMillis() - this.timeOfLogin) < loginPeriod)) {
+            for (Account a : this.accounts) {
+                if (a.getAccountNum() == accNum) {
+                    a.updateBalance(amount);
+                    a.addTransaction(new Transaction("Withdrawal", a.getBalance()));
+                    System.out.println(amount + " withdrew from account " + accNum);
+                    exit(1);
+                }
+            }
+            System.out.println("Account number "+accNum+" does not exist.");
+            exit(1);
+        }
+        else {
+            throw new InvalidSession("Session has expired, please login again.");
+        }
+    }
+
+    @Override
+    public int inquiry(int accNum) throws RemoteException, InvalidSession {
+        if (this.loggedIn && ((System.currentTimeMillis() - this.timeOfLogin) < loginPeriod)) {
+            for (Account a: accounts){
+                if(a.getAccountNum() == accNum) {
+                    System.out.println("The current balance of account "+accNum+" is €"+a.getBalance());
+                    return a.getBalance();
+                }
+            }
+            System.out.println("Account number" + accNum + " does not exist.");
+            return 0;
+        }
+        else {
+            throw new InvalidSession("Session has expired, please login again.");
+        }
+    }
+
+    @Override
+    public Statement getStatement(int accNum, String from, String to) throws RemoteException, InvalidSession {
+        if (this.loggedIn && ((System.currentTimeMillis() - this.timeOfLogin) < loginPeriod)) {
+            DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+            try {
+                Date fromDate = df.parse(from);
+                Date toDate = df.parse(to);
+                for (Account acc: this.accounts) {
+                    if (acc.getAccountNum() == accNum) {
+                        Statement newStatement = new Statement(fromDate, toDate, acc);
+                        System.out.println(newStatement.toString());
+                        return newStatement;
+                    }
+                }
+            } catch (ParseException e){
+                e.printStackTrace();
+            }
+            System.out.println("No transactions found for the period "+from+" - "+ to);
+            return null;
+        }
+        else {
+            throw new InvalidSession("Session has expired, please login again.");
+        }
+    }
+
+    public Boolean getLoggedIn() {
+        return this.loggedIn;
+    }
+
+    public Account getCurrentUser() {
+        return this.currentUser;
+    }
+
+    public long getTimeOfLogin() {
+        return this.timeOfLogin;
+    }
+
+
     public static void main(String args[]) throws Exception {
-        // initialise Bank server - see sample code in the notes for details
+        if (System.getSecurityManager() == null) {
+            System.setSecurityManager(new SecurityManager());
+        }
         try {
-            // First reset our Security manager
-            System.setSecurityManager(new RMISecurityManager());
             System.out.println("Security manager set");
 
             Bank bankServer = new Bank();
@@ -128,8 +167,6 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             bankServer.accounts.add(john);
             bankServer.accounts.add(joe);
             bankServer.accounts.add(mary);
-
-
         }
         catch(Exception e) {
             System.out.println("Error in main - " + e.toString());
