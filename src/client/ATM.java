@@ -22,8 +22,6 @@ public class ATM {
 
             switch (type) {
                 case "login":
-                    System.out.println("Accounts: "+bankServer.getAccounts());
-                    System.out.println("args[3]: "+args[3]+"args[4]: "+args[4]);
                     String username = args[3];
                     String password = args[4];
                     bankServer.login(username, password);
@@ -52,6 +50,7 @@ public class ATM {
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
     }

@@ -1,12 +1,13 @@
 package server;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by conor on 27/01/2017.
  */
-public class Account {
+public class Account implements Serializable{
     private int accountNum;
     private int balance;
     private String username;

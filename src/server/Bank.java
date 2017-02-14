@@ -46,15 +46,19 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     public void login(String username, String password) throws RemoteException, InvalidLogin {
         for (Account a: this.accounts) {
-            System.out.println("Username: "+a.getUsername()+" Password: "+a.getPassword());
-            if (a.getUsername().equals(username.toString()) && a.getPassword().equals(password.toString())){
+            if (a.getUsername().equals(username) && a.getPassword().equals(password)){
                 this.loggedIn = true;
                 this.currentUser = a;
                 this.timeOfLogin = System.currentTimeMillis();
+                System.out.println("User "+username+" has logged in. Time limit of 5 minutes before logout.");
+                System.out.println("Account number is: "+a.getAccountNum());
+
             }
         }
-        System.out.println("server.Account with username "+username+" does not exist or the password is incorrect.");
-        throw new InvalidLogin("Username or password is incorrect.");
+        if (loggedIn != true){
+            System.out.println("server.Account with username "+username+" does not exist or the password is incorrect.");
+            throw new InvalidLogin("Username or password is incorrect.");
+        }
     }
 
     @Override
@@ -65,11 +69,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     a.updateBalance(amount);
                     a.addTransaction(new Transaction("Deposit", a.getBalance()));
                     System.out.println(amount + " deposited into account number " + accNum);
-                    exit(1);
+                    break;
                 }
             }
-            System.out.println("server.Account number " + accNum + " does not exist.");
-            throw new InvalidSession("server.Account number does not exist");
         }
         else {
             throw new InvalidSession("Session has expired, please login again.");
@@ -85,11 +87,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     a.updateBalance(amount);
                     a.addTransaction(new Transaction("Withdrawal", a.getBalance()));
                     System.out.println(amount + " withdrew from account " + accNum);
-                    exit(1);
+                    break;
                 }
             }
-            System.out.println("server.Account number "+accNum+" does not exist.");
-            exit(1);
         }
         else {
             throw new InvalidSession("Session has expired, please login again.");
@@ -130,7 +130,6 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             } catch (ParseException e){
                 e.printStackTrace();
             }
-            System.out.println("No transactions found for the period "+from+" - "+ to);
             return null;
         }
         else {

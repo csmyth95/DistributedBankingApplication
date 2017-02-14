@@ -21,7 +21,7 @@ public interface BankInterface extends Remote {
 
     public StatementInterface getStatement(int accountNumber, String from, String to) throws RemoteException, InvalidSession;
 
-    public List<Account> getAccounts();
+    public List<Account> getAccounts() throws RemoteException;
 
 }
 
