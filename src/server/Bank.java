@@ -2,8 +2,8 @@ package server;
 
 import exceptions.InvalidLogin;
 import exceptions.InvalidSession;
+import interfaces.BankInterface;
 
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -25,6 +25,10 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     private List<Account> accounts; // users accounts
     private static long loginPeriod = 300000; // 5 minutes in milliseconds
 
+    public List<Account> getAccounts() {
+        return accounts;
+    }
+
     public Bank() throws RemoteException
     {
         super();
@@ -33,7 +37,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
         Account john = new Account("John1234", "1234");
         Account mary = new Account("Mary12", "12");
-        Account joe = new Account("Joe34", "34");
+        Account joe = new Account("joe", "joe");
 
         accounts.add(john);
         accounts.add(joe);
@@ -42,7 +46,8 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     public void login(String username, String password) throws RemoteException, InvalidLogin {
         for (Account a: this.accounts) {
-            if (a.getUsername() == username && a.getPassword() == password){
+            System.out.println("Username: "+a.getUsername()+" Password: "+a.getPassword());
+            if (a.getUsername().equals(username.toString()) && a.getPassword().equals(password.toString())){
                 this.loggedIn = true;
                 this.currentUser = a;
                 this.timeOfLogin = System.currentTimeMillis();
@@ -148,6 +153,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     public static void main(String args[]) throws Exception {
         if (System.getSecurityManager() == null) {
+            System.setProperty("java.security.policy", "file:/Users/conor/IdeaProjects/DistributedBankingApplication/src/security.policy");
             System.setSecurityManager(new SecurityManager());
             System.out.println("Security manager set");
         }
@@ -159,7 +165,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             // Put the server object into the Registry
             //Naming.rebind("Accounts", bankServer);
             /** Update registry so user can enter a port number */
-            Registry registry = LocateRegistry.getRegistry();
+            Registry registry = LocateRegistry.getRegistry(Integer.parseInt(args[0]));
             registry.rebind(registryName, bankServer);
             System.out.println("Name rebind completed");
             System.out.println("Server ready for requests!");
@@ -168,8 +174,5 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             System.out.println("Error in main - ");
             e.printStackTrace();
         }
-
-
     }
-
 }

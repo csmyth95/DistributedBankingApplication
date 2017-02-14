@@ -1,9 +1,10 @@
 package server;
 
-import server.StatementInterface;
+import interfaces.StatementInterface;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class Statement implements StatementInterface {
         this.accountNumber = acc.getAccountNum();
         this.startDate = start;
         this.endDate = end;
+        transactions = new ArrayList<>();
         for (Transaction t: acc.getTransactions()){
             if (t.getTransactionDate().after(start) && t.getTransactionDate().before(end)){
                 this.transactions.add(t);

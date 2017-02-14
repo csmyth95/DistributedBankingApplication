@@ -18,7 +18,7 @@ public class Account {
         this.username = uname;
         this.password = pass;
         this.balance = 0;
-        this.transactions = new ArrayList<Transaction>();
+        this.transactions = new ArrayList<>();
         this.accountNum = incrementer;
         incrementer++;
     }
