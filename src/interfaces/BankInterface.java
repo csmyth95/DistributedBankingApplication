@@ -11,11 +11,11 @@ import java.util.List;
 
 public interface BankInterface extends Remote {
 
-    public void login(String username, String password) throws RemoteException, InvalidLogin;
+    public int login(String username, String password) throws RemoteException, InvalidLogin;
 
-    public void deposit(int accountNum, int amount) throws RemoteException, InvalidSession;
+    public Boolean deposit(int accountNum, float amount) throws RemoteException, InvalidSession;
 
-    public void withdraw(int accountNum, int amount) throws RemoteException, InvalidSession;
+    public Boolean withdraw(int accountNum, float amount) throws RemoteException, InvalidSession;
 
     public int inquiry(int acc) throws RemoteException, InvalidSession;
 

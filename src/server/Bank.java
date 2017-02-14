@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static java.lang.System.exit;
-
 //SERVER
 public class Bank extends UnicastRemoteObject implements BankInterface {
     private Boolean loggedIn;
@@ -44,14 +42,14 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         accounts.add(mary);
     }
 
-    public void login(String username, String password) throws RemoteException, InvalidLogin {
+    public int login(String username, String password) throws RemoteException, InvalidLogin {
+        int accnum = 0;
         for (Account a: this.accounts) {
             if (a.getUsername().equals(username) && a.getPassword().equals(password)){
                 this.loggedIn = true;
                 this.currentUser = a;
                 this.timeOfLogin = System.currentTimeMillis();
-                System.out.println("User "+username+" has logged in. Time limit of 5 minutes before logout.");
-                System.out.println("Account number is: "+a.getAccountNum());
+                accnum = a.getAccountNum();
 
             }
         }
@@ -59,41 +57,44 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             System.out.println("server.Account with username "+username+" does not exist or the password is incorrect.");
             throw new InvalidLogin("Username or password is incorrect.");
         }
+
+        return accnum;
     }
 
     @Override
-    public void deposit(int accNum, int amount) throws RemoteException, InvalidSession {
+    public Boolean deposit(int accNum, float amount) throws RemoteException, InvalidSession {
         if (this.loggedIn && ((System.currentTimeMillis() - this.timeOfLogin) < loginPeriod)) {
             for (Account a : this.accounts) {
                 if (a.getAccountNum() == accNum) {
                     a.updateBalance(amount);
                     a.addTransaction(new Transaction("Deposit", a.getBalance()));
-                    System.out.println(amount + " deposited into account number " + accNum);
-                    break;
+                    return true;
                 }
             }
         }
         else {
             throw new InvalidSession("Session has expired, please login again.");
         }
+        return false;
+
 
     }
 
     @Override
-    public void withdraw(int accNum, int amount) throws RemoteException, InvalidSession {
+    public Boolean withdraw(int accNum, float amount) throws RemoteException, InvalidSession {
         if (this.loggedIn && ((System.currentTimeMillis() - this.timeOfLogin) < loginPeriod)) {
             for (Account a : this.accounts) {
-                if (a.getAccountNum() == accNum) {
-                    a.updateBalance(amount);
+                if (a.getAccountNum() == accNum && a.getBalance()>=amount) {
+                    a.updateBalance(-(amount));
                     a.addTransaction(new Transaction("Withdrawal", a.getBalance()));
-                    System.out.println(amount + " withdrew from account " + accNum);
-                    break;
+                    return true;
                 }
             }
         }
         else {
             throw new InvalidSession("Session has expired, please login again.");
         }
+        return false;
     }
 
     @Override
@@ -101,7 +102,6 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
         if (this.loggedIn && ((System.currentTimeMillis() - this.timeOfLogin) < loginPeriod)) {
             for (Account a: accounts){
                 if(a.getAccountNum() == accNum) {
-                    System.out.println("The current balance of account "+accNum+" is €"+a.getBalance());
                     return a.getBalance();
                 }
             }
@@ -123,7 +123,6 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                 for (Account acc: this.accounts) {
                     if (acc.getAccountNum() == accNum) {
                         Statement newStatement = new Statement(fromDate, toDate, acc);
-                        System.out.println(newStatement.toString());
                         return newStatement;
                     }
                 }
@@ -152,7 +151,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     public static void main(String args[]) throws Exception {
         if (System.getSecurityManager() == null) {
-            System.setProperty("java.security.policy", "file:/Users/conor/IdeaProjects/DistributedBankingApplication/src/security.policy");
+            System.setProperty("java.security.policy", "file:/Users/aaron/IdeaProjects/DistributedBankingApplication/src/security.policy");
             System.setSecurityManager(new SecurityManager());
             System.out.println("Security manager set");
         }

@@ -44,7 +44,7 @@ public class Account implements Serializable{
         this.transactions.add(t);
     }
 
-    public void updateBalance(int amount) {
+    public void updateBalance(float amount) {
         this.balance += amount;
     }
 
