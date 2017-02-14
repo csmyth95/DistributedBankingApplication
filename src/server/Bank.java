@@ -1,26 +1,17 @@
+package server;
 
-/*
-* Server definition
-*
-* NOTES:
-* The Bank server should be initialised with a number of test accounts that have various balances that can then
-* be accessed by the ATM clients.
-
-The bank server program has only one command line parameter “server_port”, which specifies the
-port of rmiregistry. The default port of rmiregistry is 1099, but we may have to use other ports,
-if 1099 has already been used by some other programs.
-
-You will need to define suitable classes for Account and Transaction and also
-provide a class that implements the Statement interface.
-
-*/
+import exceptions.InvalidLogin;
+import exceptions.InvalidSession;
 
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -37,6 +28,16 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     public Bank() throws RemoteException
     {
         super();
+        /** Create mock accounts to login with */
+        accounts = new ArrayList<>();
+
+        Account john = new Account("John1234", "1234");
+        Account mary = new Account("Mary12", "12");
+        Account joe = new Account("Joe34", "34");
+
+        accounts.add(john);
+        accounts.add(joe);
+        accounts.add(mary);
     }
 
     public void login(String username, String password) throws RemoteException, InvalidLogin {
@@ -47,7 +48,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                 this.timeOfLogin = System.currentTimeMillis();
             }
         }
-        System.out.println("Account with username "+username+" does not exist or the password is incorrect.");
+        System.out.println("server.Account with username "+username+" does not exist or the password is incorrect.");
         throw new InvalidLogin("Username or password is incorrect.");
     }
 
@@ -62,8 +63,8 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     exit(1);
                 }
             }
-            System.out.println("Account number " + accNum + " does not exist.");
-            throw new InvalidSession("Account number does not exist");
+            System.out.println("server.Account number " + accNum + " does not exist.");
+            throw new InvalidSession("server.Account number does not exist");
         }
         else {
             throw new InvalidSession("Session has expired, please login again.");
@@ -82,7 +83,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     exit(1);
                 }
             }
-            System.out.println("Account number "+accNum+" does not exist.");
+            System.out.println("server.Account number "+accNum+" does not exist.");
             exit(1);
         }
         else {
@@ -99,7 +100,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
                     return a.getBalance();
                 }
             }
-            System.out.println("Account number" + accNum + " does not exist.");
+            System.out.println("server.Account number" + accNum + " does not exist.");
             return 0;
         }
         else {
@@ -148,28 +149,24 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
     public static void main(String args[]) throws Exception {
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
+            System.out.println("Security manager set");
         }
         try {
-            System.out.println("Security manager set");
+            String registryName = "Accounts";
+            BankInterface bankServer = new Bank();
 
-            Bank bankServer = new Bank();
-            System.out.println("Instance of Bank Server created");
+            System.out.println("Instance of server.Bank Server created");
             // Put the server object into the Registry
-            Naming.rebind("Accounts", bankServer);
+            //Naming.rebind("Accounts", bankServer);
+            /** Update registry so user can enter a port number */
+            Registry registry = LocateRegistry.getRegistry();
+            registry.rebind(registryName, bankServer);
             System.out.println("Name rebind completed");
             System.out.println("Server ready for requests!");
-
-            /** Create mock accounts to login with */
-            Account john = new Account("John1234", "1234");
-            Account mary = new Account("Mary12", "12");
-            Account joe = new Account("Joe34", "34");
-
-            bankServer.accounts.add(john);
-            bankServer.accounts.add(joe);
-            bankServer.accounts.add(mary);
         }
         catch(Exception e) {
-            System.out.println("Error in main - " + e.toString());
+            System.out.println("Error in main - ");
+            e.printStackTrace();
         }
 
 

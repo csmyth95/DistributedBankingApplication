@@ -1,21 +1,7 @@
-/*
-* NOTES:
-* The command line parameters of the ATM client application will include:
-    server_address: the address of the rmiregistry
-    server_port: the port of the rmiregistry
-    operation: one of "login", "deposit", "withdraw", and "inquiry"
-    account: the user account
-    username: only for "login" operation
-    password: only for "login" operation
-    amount: only for “deposit” and “withdraw” operations
-* */
+package client;
 
-
+import server.BankInterface;
 import java.rmi.Naming;
-import java.rmi.RMISecurityManager;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 // CLIENT
 public class ATM {

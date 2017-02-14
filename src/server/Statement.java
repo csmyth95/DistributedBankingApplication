@@ -1,3 +1,7 @@
+package server;
+
+import server.StatementInterface;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -49,7 +53,7 @@ public class Statement implements StatementInterface {
         DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
         String from = df.format(this.startDate);
         String to = df.format(this.endDate);
-        String statement = "Printing Statement for Account "+this.getAccountNumber()+"for the period "+from+" - "+to+"\n";
+        String statement = "Printing server.Statement for server.Account "+this.getAccountNumber()+"for the period "+from+" - "+to+"\n";
         for (Transaction t: this.getTransactions()) {
             statement += "Date: "+t.getTransactionDate()+" Type: "+t.getType()+" Balance: €"+t.getBalance()+"\n";
         }

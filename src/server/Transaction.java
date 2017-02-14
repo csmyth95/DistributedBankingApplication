@@ -1,10 +1,12 @@
+package server;
+
 import java.util.Date;
 
 /**
  * Created by conor on 27/01/2017.
  */
 public class Transaction {
-    private int number;
+    private static int transactionNumber;
     private Date transactionDate;
     private String type;
     private int balance;
@@ -12,7 +14,7 @@ public class Transaction {
     private static int incrementor = 0;
 
     public Transaction(String t, int b){
-        this.number = incrementor;
+        this.transactionNumber = incrementor;
         incrementor += 1;
         this.transactionDate = new Date();
         this.type = t;
