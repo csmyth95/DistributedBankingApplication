@@ -1,11 +1,12 @@
 package server;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by conor on 27/01/2017.
  */
-public class Transaction {
+public class Transaction implements Serializable {
     private static int transactionNumber;
     private Date transactionDate;
     private String type;

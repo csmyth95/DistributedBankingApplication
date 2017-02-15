@@ -16,14 +16,14 @@ public class Statement implements StatementInterface {
     private String accountName;
     private List<Transaction> transactions;
 
-    public Statement(Date start, Date end, Account acc){
+    public Statement(Date end, Date start, Account acc){
         this.accountName = acc.getUsername();
         this.accountNumber = acc.getAccountNum();
         this.startDate = start;
         this.endDate = end;
         transactions = new ArrayList<>();
         for (Transaction t: acc.getTransactions()){
-            if (t.getTransactionDate().after(start) && t.getTransactionDate().before(end)){
+            if (!t.getTransactionDate().before(start) && !t.getTransactionDate().after(end)){
                 this.transactions.add(t);
             }
         }
@@ -55,7 +55,7 @@ public class Statement implements StatementInterface {
         DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
         String from = df.format(this.startDate);
         String to = df.format(this.endDate);
-        String statement = "Printing server.Statement for server.Account "+this.getAccountNumber()+"for the period "+from+" - "+to+"\n";
+        String statement = "Printing statement for Account "+this.getAccountNumber()+" for the period "+to+" - "+from+"\n";
         for (Transaction t: this.getTransactions()) {
             statement += "Date: "+t.getTransactionDate()+" Type: "+t.getType()+" Balance: €"+t.getBalance()+"\n";
         }

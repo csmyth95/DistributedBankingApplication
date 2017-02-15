@@ -54,10 +54,9 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             }
         }
         if (loggedIn != true){
-            System.out.println("server.Account with username "+username+" does not exist or the password is incorrect.");
+            System.out.println("Account with username "+username+" does not exist or the password is incorrect.");
             throw new InvalidLogin("Username or password is incorrect.");
         }
-
         return accnum;
     }
 
@@ -151,7 +150,7 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
 
     public static void main(String args[]) throws Exception {
         if (System.getSecurityManager() == null) {
-            System.setProperty("java.security.policy", "file:/Users/aaron/IdeaProjects/DistributedBankingApplication/src/security.policy");
+            System.setProperty("java.security.policy", "file:/Users/conor/IdeaProjects/DistributedBankingApplication/src/security.policy");
             System.setSecurityManager(new SecurityManager());
             System.out.println("Security manager set");
         }
@@ -159,10 +158,8 @@ public class Bank extends UnicastRemoteObject implements BankInterface {
             String registryName = "Accounts";
             BankInterface bankServer = new Bank();
 
-            System.out.println("Instance of server.Bank Server created");
+            System.out.println("Instance of Bank Server created");
             // Put the server object into the Registry
-            //Naming.rebind("Accounts", bankServer);
-            /** Update registry so user can enter a port number */
             Registry registry = LocateRegistry.getRegistry(Integer.parseInt(args[0]));
             registry.rebind(registryName, bankServer);
             System.out.println("Name rebind completed");

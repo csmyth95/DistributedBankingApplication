@@ -2,7 +2,6 @@ package client;
 
 import interfaces.BankInterface;
 import interfaces.StatementInterface;
-import server.Statement;
 import server.Transaction;
 
 import java.rmi.Naming;
@@ -59,28 +58,13 @@ public class ATM {
                     accountNumber = Integer.parseInt(args[3]);
                     String to = args[4];
                     String from = args[5];
-                    StatementInterface statement = bankServer.getStatement(accountNumber, to, from);
-
-                    Date startDate = statement.getStartDate();
-                    Date endDate = statement.getEndDate();
-                    accountNumber = statement.getAccountNumber();
-                    List<Transaction> transactions = statement.getTransactions();
-
-                    DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-                    from = df.format(startDate);
-                    to = df.format(endDate);
-                    String statementString = "Printing server.Statement for server.Account "+accountNumber+"for the period "+from+" - "+to+"\n";
-                    for (Transaction t: transactions) {
-                        statementString += "Date: "+t.getTransactionDate()+" Type: "+t.getType()+" Balance: €"+t.getBalance()+"\n";
-                    }
-                    System.out.println(statementString);
-
+                    StatementInterface statement = bankServer.getStatement(accountNumber, from, to);
+                    System.out.println(statement.toString());
                     break;
             }
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
         }
 
     }
